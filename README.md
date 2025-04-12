@@ -15,8 +15,8 @@
 
 1. 저장소 클론
 ```bash
-git clone https://github.com/yourusername/ai-problem-grading-system.git
-cd ai-problem-grading-system
+git clone https://github.com/sang-su0916/AI-system.git
+cd AI-system
 ```
 
 2. 가상환경 생성 및 활성화
