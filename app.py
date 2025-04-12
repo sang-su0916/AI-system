@@ -289,11 +289,20 @@ if st.session_state.student_info:
         # 문제 표시
         problem = st.session_state.current_problem
         st.header("문제")
-        st.write(problem["content"])
+        
+        # 오류 처리 추가 - 'content' 키가 있는지 확인
+        if "content" in problem:
+            st.write(problem["content"])
+        else:
+            st.error("문제 형식이 올바르지 않습니다. 'content' 정보가 없습니다.")
+            # 문제를 초기화하고 다시 불러오도록 함
+            st.session_state.current_problem = None
+            st.button("다시 문제 가져오기")
+            st.stop()  # 여기서 처리 중단
         
         # 답안 제출 폼
         with st.form("answer_form"):
-            if problem["problem_type"] == "객관식":
+            if problem["problem_type"] == "객관식" and "options" in problem:
                 student_answer = st.radio(
                     "답안 선택",
                     options=problem["options"],
@@ -305,7 +314,11 @@ if st.session_state.student_info:
             submit_answer = st.form_submit_button("답안 제출")
             
             if submit_answer:
-                # 채점
+                # 채점 - 필요한 키가 있는지 확인
+                if "answer" not in problem:
+                    st.error("문제 형식이 올바르지 않습니다. '정답' 정보가 없습니다.")
+                    st.stop()
+                
                 grade_result = grade_answer(problem, student_answer)
                 score = grade_result["score"]
                 is_correct = grade_result["is_correct"]
@@ -334,21 +347,37 @@ if st.session_state.student_info:
         st.header("결과")
         problem = st.session_state.current_problem
         
+        # 필요한 키가 있는지 확인하는 오류 처리 추가
+        if problem is None:
+            st.error("문제 정보가 없습니다.")
+            st.session_state.submitted = False
+            st.button("문제 다시 가져오기")
+            st.stop()
+        
         # 채점 결과 표시
         st.subheader("📊 채점 결과")
         st.metric("점수", f"{st.session_state.score}점")
         
         # 정답 표시
         st.subheader("✅ 정답")
-        st.write(problem["answer"])
+        if "answer" in problem:
+            st.write(problem["answer"])
+        else:
+            st.write("정답 정보가 없습니다.")
         
         # 해설 표시
         st.subheader("📝 해설")
-        st.write(problem["explanation"])
+        if "explanation" in problem:
+            st.write(problem["explanation"])
+        else:
+            st.write("해설 정보가 없습니다.")
         
         # 첨삭 표시
         st.subheader("✍️ 첨삭")
-        st.write(st.session_state.feedback)
+        if st.session_state.feedback:
+            st.write(st.session_state.feedback)
+        else:
+            st.write("첨삭 정보가 없습니다.")
         
         # 새 문제 풀기 버튼
         if st.button("새 문제 풀기"):
