@@ -1,0 +1,31 @@
+# 환경변수 파일
+.env
+
+# 가상환경
+venv/
+env/
+ENV/
+
+# 파이썬 캐시 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 배포 폴더
+dist/
+build/
+*.egg-info/
+
+# 로그 파일
+*.log
+
+# 스트림릿 캐시 파일
+.streamlit/
+
+# IDE 설정 파일
+.idea/
+.vscode/
+*.swp
+*.swo 
