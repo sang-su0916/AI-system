@@ -22,8 +22,8 @@ if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
 
 # 페이지 제목 설정
-st.set_page_config(page_title="AI 기반 자동 문제 출제 및 채점 시스템", page_icon="📝", layout="wide")
-st.title("AI 기반 자동 문제 출제 및 채점 시스템")
+st.set_page_config(page_title="자동 문제 출제 및 채점 시스템", page_icon="📝", layout="wide")
+st.title("자동 문제 출제 및 채점 시스템")
 
 # 세션 상태 초기화
 if "current_problem" not in st.session_state:
@@ -76,18 +76,58 @@ def get_problem_from_api(subject, problem_type):
     """
     try:
         if not GOOGLE_SHEETS_API_URL:
-            # 테스트용 가상 데이터
-            sample_problem = {
-                "problem_id": "P001",
-                "subject": subject,
-                "problem_type": problem_type,
-                "content": "다음 중 가장 큰 수는?",
-                "options": ["1.5", "2.3", "0.75", "1.25"],
-                "answer": "2.3",
-                "explanation": "주어진 숫자들 중 2.3이 가장 큽니다.",
-                "keywords": ["비교", "실수", "크기"]
-            }
-            return sample_problem
+            # 테스트용 가상 데이터 - 기본 20문제 설정
+            sample_problems = []
+            for i in range(1, 21):  # 20문제 생성
+                problem_id = f"P{i:03d}"
+                if subject == "수학":
+                    if problem_type == "객관식":
+                        sample_problem = {
+                            "problem_id": problem_id,
+                            "subject": subject,
+                            "problem_type": problem_type,
+                            "content": f"문제 {i}: 다음 중 가장 큰 수는?",
+                            "options": ["1.5", "2.3", "0.75", "1.25"],
+                            "answer": "2.3",
+                            "explanation": "주어진 숫자들 중 2.3이 가장 큽니다.",
+                            "keywords": ["비교", "실수", "크기"]
+                        }
+                    else:
+                        sample_problem = {
+                            "problem_id": problem_id,
+                            "subject": subject,
+                            "problem_type": problem_type,
+                            "content": f"문제 {i}: 2x + 5 = 15일 때, x의 값은?",
+                            "answer": "5",
+                            "explanation": "2x + 5 = 15에서 2x = 10이므로 x = 5입니다.",
+                            "keywords": ["일차방정식", "계산", "대수"]
+                        }
+                else:
+                    if problem_type == "객관식":
+                        sample_problem = {
+                            "problem_id": problem_id,
+                            "subject": subject,
+                            "problem_type": problem_type,
+                            "content": f"문제 {i}: 다음 중 올바른 영어 표현은?",
+                            "options": ["I am go to school", "I going to school", "I goes to school", "I go to school"],
+                            "answer": "I go to school",
+                            "explanation": "주어 I와 함께 사용하는 동사의 올바른 형태는 'go'입니다.",
+                            "keywords": ["영어", "동사", "문법"]
+                        }
+                    else:
+                        sample_problem = {
+                            "problem_id": problem_id,
+                            "subject": subject,
+                            "problem_type": problem_type,
+                            "content": f"문제 {i}: 'apple'의 올바른 철자를 쓰시오.",
+                            "answer": "apple",
+                            "explanation": "apple은 '사과'를 의미하는 영어 단어입니다.",
+                            "keywords": ["영어", "철자", "단어"]
+                        }
+                sample_problems.append(sample_problem)
+            
+            # 첫 번째 문제 반환
+            return sample_problems[0]
             
         # API 요청 파라미터
         params = {
@@ -137,11 +177,11 @@ def grade_answer(problem, student_answer):
 # AI 피드백 생성 함수
 def generate_ai_feedback(problem, student_answer, is_correct):
     """
-    AI를 사용하여 학생의 답안에 대한 피드백을 생성하는 함수
+    학생의 답안에 대한 첨삭을 생성하는 함수
     """
     try:
         if OPENAI_API_KEY:
-            # OpenAI API를 사용한 피드백 생성
+            # OpenAI API를 사용한 첨삭 생성
             prompt = f"""
             문제: {problem['content']}
             정답: {problem['answer']}
@@ -149,7 +189,7 @@ def generate_ai_feedback(problem, student_answer, is_correct):
             정답 여부: {'맞음' if is_correct else '틀림'}
             해설: {problem['explanation']}
             
-            위 정보를 바탕으로 학생에게 도움이 될 수 있는 짧은 피드백을 생성해주세요. 
+            위 정보를 바탕으로 학생에게 도움이 될 수 있는 짧은 첨삭을 생성해주세요. 
             틀린 경우, 왜 틀렸는지 설명하고 정답을 이해할 수 있도록 도와주세요.
             맞은 경우, 정답을 더 깊이 이해할 수 있도록 추가 정보를 제공해주세요.
             """
@@ -164,7 +204,7 @@ def generate_ai_feedback(problem, student_answer, is_correct):
             return response.choices[0].text.strip()
             
         elif GOOGLE_API_KEY:
-            # Google Gemini API를 사용한 피드백 생성
+            # Google Gemini API를 사용한 첨삭 생성
             prompt = f"""
             문제: {problem['content']}
             정답: {problem['answer']}
@@ -172,7 +212,7 @@ def generate_ai_feedback(problem, student_answer, is_correct):
             정답 여부: {'맞음' if is_correct else '틀림'}
             해설: {problem['explanation']}
             
-            위 정보를 바탕으로 학생에게 도움이 될 수 있는 짧은 피드백을 생성해주세요. 
+            위 정보를 바탕으로 학생에게 도움이 될 수 있는 짧은 첨삭을 생성해주세요. 
             틀린 경우, 왜 틀렸는지 설명하고 정답을 이해할 수 있도록 도와주세요.
             맞은 경우, 정답을 더 깊이 이해할 수 있도록 추가 정보를 제공해주세요.
             """
@@ -183,15 +223,15 @@ def generate_ai_feedback(problem, student_answer, is_correct):
             return response.text
             
         else:
-            # API 키가 없는 경우 기본 피드백 제공
+            # API 키가 없는 경우 기본 첨삭 제공
             if is_correct:
                 return f"정답입니다! {problem['explanation']}"
             else:
                 return f"틀렸습니다. 정답은 {problem['answer']}입니다. {problem['explanation']}"
     
     except Exception as e:
-        st.error(f"피드백 생성 오류: {str(e)}")
-        # 오류 발생 시 기본 피드백 제공
+        st.error(f"첨삭 생성 오류: {str(e)}")
+        # 오류 발생 시 기본 첨삭 제공
         if is_correct:
             return f"정답입니다! {problem['explanation']}"
         else:
@@ -270,7 +310,7 @@ if st.session_state.student_info:
                 score = grade_result["score"]
                 is_correct = grade_result["is_correct"]
                 
-                # AI 피드백 생성
+                # 첨삭 생성
                 feedback = generate_ai_feedback(problem, student_answer, is_correct)
                 
                 # 결과 저장
@@ -306,8 +346,8 @@ if st.session_state.student_info:
         st.subheader("📝 해설")
         st.write(problem["explanation"])
         
-        # AI 피드백 표시
-        st.subheader("🤖 AI 피드백")
+        # 첨삭 표시
+        st.subheader("✍️ 첨삭")
         st.write(st.session_state.feedback)
         
         # 새 문제 풀기 버튼
@@ -323,4 +363,4 @@ else:
 
 # 푸터
 st.markdown("---")
-st.caption("© AI 기반 자동 문제 출제 및 채점 시스템") 
+st.caption("© 자동 문제 출제 및 채점 시스템") 
