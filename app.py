@@ -194,14 +194,19 @@ def generate_ai_feedback(problem, student_answer, is_correct):
             맞은 경우, 정답을 더 깊이 이해할 수 있도록 추가 정보를 제공해주세요.
             """
             
-            response = openai.Completion.create(
-                engine="text-davinci-003", 
-                prompt=prompt,
+            # 최신 버전의 OpenAI API 호출 방식으로 변경
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "당신은 학생들의 답안을 첨삭해주는 교육 보조 AI입니다."},
+                    {"role": "user", "content": prompt}
+                ],
                 max_tokens=200,
                 temperature=0.7
             )
             
-            return response.choices[0].text.strip()
+            # 응답 처리 방식 변경
+            return response.choices[0].message.content.strip()
             
         elif GOOGLE_API_KEY:
             # Google Gemini API를 사용한 첨삭 생성
