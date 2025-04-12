@@ -40,9 +40,16 @@ if "score" not in st.session_state:
 # 사이드바 - 학생 정보 입력
 with st.sidebar:
     st.header("학생 정보")
+    st.markdown("**로그인 방법**")
+    st.markdown("1. 학생 ID(학번)를 정확히 입력하세요")
+    st.markdown("2. 이름을 실명으로 입력하세요")
+    st.markdown("3. 학교 구분과 학년을 선택하세요")
+    st.markdown("4. '정보 제출' 버튼을 클릭하세요")
+    
     with st.form("student_form"):
-        student_id = st.text_input("학생 ID")
+        student_id = st.text_input("학생 ID", placeholder="학번을 입력하세요")
         student_name = st.text_input("이름")
+        school_type = st.selectbox("학교 구분", options=["중학교", "고등학교"])
         student_grade = st.selectbox("학년", options=["1학년", "2학년", "3학년"])
         subject = st.selectbox("과목", options=["수학", "영어", "국어", "과학", "사회"])
         problem_type = st.selectbox("문제 유형", options=["객관식", "주관식"])
@@ -53,13 +60,14 @@ with st.sidebar:
                 st.session_state.student_info = {
                     "id": student_id,
                     "name": student_name,
+                    "school_type": school_type,
                     "grade": student_grade,
                     "subject": subject,
                     "problem_type": problem_type
                 }
-                st.success("학생 정보가 저장되었습니다.")
+                st.success(f"{school_type} {student_grade} {student_name} 학생 로그인 성공!")
             else:
-                st.error("학생 ID와 이름을 입력해주세요.")
+                st.error("학생 ID와 이름을 입력해주세요. 학생 ID는 학번을 의미합니다.")
 
 # Google Sheets API에서 문제 가져오기 함수
 def get_problem_from_api(subject, problem_type):
@@ -204,6 +212,7 @@ def save_result_to_api(student_info, problem, student_answer, score, feedback):
             "action": "saveResult",
             "studentId": student_info["id"],
             "studentName": student_info["name"],
+            "schoolType": student_info["school_type"],
             "studentGrade": student_info["grade"],
             "problemId": problem["problem_id"],
             "studentAnswer": student_answer,
@@ -310,8 +319,8 @@ if st.session_state.student_info:
             st.experimental_rerun()
 else:
     # 학생 정보가 없는 경우 안내 메시지 표시
-    st.info("👈 먼저 왼쪽 사이드바에서 학생 정보를 입력해주세요.")
+    st.info("👈 먼저 왼쪽 사이드바에서 학생 정보를 입력해주세요. 학생 ID는 학번을 입력하시면 됩니다.")
 
 # 푸터
 st.markdown("---")
-st.caption("© 2024 AI 기반 자동 문제 출제 및 채점 시스템") 
+st.caption("© AI 기반 자동 문제 출제 및 채점 시스템") 
